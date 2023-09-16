@@ -1,6 +1,6 @@
 module github.com/essentialkaos/subdy
 
-go 1.21.0
+go 1.18.0
 
 require (
 	github.com/essentialkaos/depsy v1.1.0
