@@ -13,7 +13,7 @@
 
 <br/>
 
-`subdy` is simple CLI for subdomain.center API.
+`subdy` is simple CLI for [subdomain.center](https://www.subdomain.center) API.
 
 ### Screenshots
 
@@ -25,7 +25,7 @@
 
 #### From source
 
-To build the `subdy` from scratch, make sure you have a working Go 1.19+ workspace (_[instructions](https://go.dev/doc/install)_), then:
+To build the `subdy` from scratch, make sure you have a working Go 1.20+ workspace (_[instructions](https://go.dev/doc/install)_), then:
 
 ```
 go install github.com/essentialkaos/subdy@latest
