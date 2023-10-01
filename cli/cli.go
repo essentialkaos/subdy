@@ -34,7 +34,7 @@ import (
 // Basic utility info
 const (
 	APP  = "subdy"
-	VER  = "0.0.1"
+	VER  = "0.0.2"
 	DESC = "CLI for subdomain.center API"
 )
 
@@ -175,6 +175,7 @@ func process(args options.Arguments) error {
 	subdomains, err := subdomains.Find(domain)
 
 	if err != nil {
+		fmtc.TPrintf("")
 		return err
 	}
 
