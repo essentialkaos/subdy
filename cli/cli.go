@@ -13,10 +13,12 @@ import (
 	"strings"
 
 	"github.com/essentialkaos/ek/v12/fmtc"
-	"github.com/essentialkaos/ek/v12/fsutil"
 	"github.com/essentialkaos/ek/v12/options"
 	"github.com/essentialkaos/ek/v12/req"
 	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/support"
+	"github.com/essentialkaos/ek/v12/support/deps"
+	"github.com/essentialkaos/ek/v12/terminal/tty"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
 	"github.com/essentialkaos/ek/v12/usage/completion/fish"
@@ -24,7 +26,6 @@ import (
 	"github.com/essentialkaos/ek/v12/usage/man"
 	"github.com/essentialkaos/ek/v12/usage/update"
 
-	"github.com/essentialkaos/subdy/cli/support"
 	"github.com/essentialkaos/subdy/dns"
 	"github.com/essentialkaos/subdy/subdomains"
 )
@@ -34,7 +35,7 @@ import (
 // Basic utility info
 const (
 	APP  = "subdy"
-	VER  = "0.0.2"
+	VER  = "0.1.0"
 	DESC = "CLI for subdomain.center API"
 )
 
@@ -111,7 +112,11 @@ func Run(gitRev string, gomod []byte) {
 		genAbout(gitRev).Print(options.GetS(OPT_VER))
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
-		support.Print(APP, VER, gitRev, gomod)
+		support.Collect(APP, VER).
+			WithRevision(gitRev).
+			WithDeps(deps.Extract(gomod)).
+			WithChecks(checkAPIAvailability()).
+			Print()
 		os.Exit(0)
 	case options.GetB(OPT_HELP) || len(args) == 0:
 		genUsage().Print()
@@ -130,25 +135,7 @@ func Run(gitRev string, gomod []byte) {
 
 // preConfigureUI preconfigures UI based on information about user terminal
 func preConfigureUI() {
-	term := os.Getenv("TERM")
-
-	fmtc.DisableColors = true
-
-	if term != "" {
-		switch {
-		case strings.Contains(term, "xterm"),
-			strings.Contains(term, "color"),
-			term == "screen":
-			fmtc.DisableColors = false
-		}
-	}
-
-	if !fsutil.IsCharacterDevice("/dev/stdout") && os.Getenv("FAKETTY") == "" {
-		fmtc.DisableColors = true
-		useRawOutput = true
-	}
-
-	if os.Getenv("NO_COLOR") != "" {
+	if !tty.IsTTY() {
 		fmtc.DisableColors = true
 	}
 }
@@ -167,7 +154,7 @@ func process(args options.Arguments) error {
 	domain := args.Get(0).String()
 
 	if !strings.Contains(domain, ".") {
-		return fmt.Errorf("%s is not valid domain")
+		return fmt.Errorf("%q is not valid domain", domain)
 	}
 
 	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains…{!}")
@@ -276,17 +263,42 @@ func printWarn(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// checkAPIAvailability checks API availability
+func checkAPIAvailability() support.Check {
+	chk := support.Check{support.CHECK_ERROR, "API", ""}
+
+	resp, err := req.Request{
+		URL:         subdomains.API_URL,
+		AutoDiscard: true,
+	}.Get()
+
+	if err != nil {
+		chk.Message = "Can't send request"
+		return chk
+	}
+
+	if resp.StatusCode != 200 {
+		chk.Message = fmt.Sprintf("API returned non-ok status code (%d)", resp.StatusCode)
+		return chk
+	}
+
+	chk.Status = support.CHECK_OK
+	chk.Message = "API available"
+
+	return chk
+}
+
 // printCompletion prints completion for given shell
 func printCompletion() int {
 	info := genUsage()
 
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Printf(bash.Generate(info, "subdy"))
+		fmt.Print(bash.Generate(info, "subdy"))
 	case "fish":
-		fmt.Printf(fish.Generate(info, "subdy"))
+		fmt.Print(fish.Generate(info, "subdy"))
 	case "zsh":
-		fmt.Printf(zsh.Generate(info, optMap, "subdy"))
+		fmt.Print(zsh.Generate(info, optMap, "subdy"))
 	default:
 		return 1
 	}
@@ -332,17 +344,17 @@ func genUsage() *usage.Info {
 // genAbout generates info about version
 func genAbout(gitRev string) *usage.About {
 	about := &usage.About{
-		App:           APP,
-		Version:       VER,
-		Desc:          DESC,
-		Year:          2009,
-		Owner:         "ESSENTIAL KAOS",
-		License:       "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
-		UpdateChecker: usage.UpdateChecker{"essentialkaos/subdy", update.GitHubChecker},
+		App:     APP,
+		Version: VER,
+		Desc:    DESC,
+		Year:    2009,
+		Owner:   "ESSENTIAL KAOS",
+		License: "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
 	}
 
 	if gitRev != "" {
 		about.Build = "git:" + gitRev
+		about.UpdateChecker = usage.UpdateChecker{"essentialkaos/subdy", update.GitHubChecker}
 	}
 
 	return about
