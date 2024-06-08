@@ -78,28 +78,7 @@ subdy --generate-man | sudo gzip > /usr/share/man/man1/subdy.1.gz
 
 ### Usage
 
-```
-Usage: subdy {options} domain
-
-Options
-
-  --ip, -I                 Resolve subdomains IP
-  --dns, -D name-or-url    DoH provider (cloudflare|google|url)
-  --no-color, -nc          Disable colors in output
-  --help, -h               Show this help message
-  --version, -v            Show version
-
-Examples
-
-  subdy go.dev
-  Find all subdomains of go.dev
-
-  subdy -I go.dev
-  Find all subdomains of go.dev and resolve their IPs
-
-  subdy -I -D google go.dev
-  Find all subdomains of go.dev and resolve their IPs using Google DNS
-```
+<img src=".github/images/usage.svg" />
 
 ### CI Status
 
