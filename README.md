@@ -18,7 +18,7 @@
 ### Screenshots
 
 <p align="center">
-  <img src="https://gh.kaos.st/subdy.png" alt="subdy preview">
+  <img src=".github/images/subdy.png" alt="subdy preview">
 </p>
 
 ### Installation
