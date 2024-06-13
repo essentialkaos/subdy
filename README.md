@@ -1,4 +1,4 @@
-<p align="center"><a href="#readme"><img src="https://gh.kaos.st/subdy.svg"/></a></p>
+<p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
   <a href="https://kaos.sh/r/subdy"><img src="https://kaos.sh/r/subdy.svg" alt="GoReportCard" /></a>
@@ -6,7 +6,7 @@
   <a href="https://kaos.sh/b/subdy"><img src="https://kaos.sh/b/ad36c313-9009-4abe-97d6-7c1f0de39794.svg" alt="Codebeat badge" /></a>
   <a href="https://kaos.sh/w/subdy/ci"><img src="https://kaos.sh/w/subdy/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/subdy/codeql"><img src="https://kaos.sh/w/subdy/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
-  <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
+  <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
 <p align="center"><a href="#screenshots">Screenshots</a> • <a href="#installation">Installation</a> • <a href="#usage">Usage</a> • <a href="#ci-status">CI Status</a> • <a href="#contributing">Contributing</a> • <a href="#license">License</a></p>
