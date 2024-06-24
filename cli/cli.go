@@ -18,6 +18,7 @@ import (
 	"github.com/essentialkaos/ek/v12/strutil"
 	"github.com/essentialkaos/ek/v12/support"
 	"github.com/essentialkaos/ek/v12/support/deps"
+	"github.com/essentialkaos/ek/v12/terminal"
 	"github.com/essentialkaos/ek/v12/terminal/tty"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
@@ -35,7 +36,7 @@ import (
 // Basic utility info
 const (
 	APP  = "subdy"
-	VER  = "0.1.0"
+	VER  = "0.2.0"
 	DESC = "CLI for subdomain.center API"
 )
 
@@ -82,6 +83,7 @@ var dohProviders = map[string]string{
 	"cf":         dns.CLOUDFLARE,
 	"cloudflare": dns.CLOUDFLARE,
 	"google":     dns.GOOGLE,
+	"quad9":      dns.QUAD9,
 }
 
 // useRawOutput is raw output flag (for cli command)
@@ -95,8 +97,9 @@ func Run(gitRev string, gomod []byte) {
 
 	args, errs := options.Parse(optMap)
 
-	if len(errs) != 0 {
-		printError(errs[0].Error())
+	if !errs.IsEmpty() {
+		terminal.Error("Options parsing errors:")
+		terminal.Error(errs.String())
 		os.Exit(1)
 	}
 
@@ -123,10 +126,17 @@ func Run(gitRev string, gomod []byte) {
 		os.Exit(0)
 	}
 
-	err := process(args)
+	err := validateOptionsAndArgs(args)
 
 	if err != nil {
-		printError(err.Error())
+		terminal.Error(err)
+		os.Exit(1)
+	}
+
+	err = process(args)
+
+	if err != nil {
+		terminal.Error(err)
 		os.Exit(1)
 	}
 }
@@ -149,17 +159,30 @@ func configureUI() {
 	req.SetUserAgent(APP, VER)
 }
 
-// process starts arguments processing
-func process(args options.Arguments) error {
+// validateOptionsAndArgs validates options and arguments
+func validateOptionsAndArgs(args options.Arguments) error {
 	domain := args.Get(0).String()
 
 	if !strings.Contains(domain, ".") {
 		return fmt.Errorf("%q is not valid domain", domain)
 	}
 
+	if options.Has(OPT_DNS) {
+		dns := options.GetS(OPT_DNS)
+
+		if !strings.Contains(dns, ".") && dohProviders[dns] == "" {
+			return fmt.Errorf("Unknown DNS-over-HTTPS provider %q", dns)
+		}
+	}
+
+	return nil
+}
+
+// process starts arguments processing
+func process(args options.Arguments) error {
 	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains…{!}")
 
-	subdomains, err := subdomains.Find(domain)
+	subdomains, err := subdomains.Find(args.Get(0).String())
 
 	if err != nil {
 		fmtc.TPrintf("")
@@ -168,7 +191,7 @@ func process(args options.Arguments) error {
 
 	if len(subdomains) == 0 {
 		fmtc.TPrintf("")
-		printWarn("There are no subdomains for this domain")
+		terminal.Warn("There are no subdomains for this domain")
 		return nil
 	}
 
@@ -243,24 +266,6 @@ func getDoHResolver() *dns.Resolver {
 	return &dns.Resolver{resolverURL}
 }
 
-// printError prints error message to console
-func printError(f string, a ...interface{}) {
-	if len(a) == 0 {
-		fmtc.Fprintln(os.Stderr, "{r}"+f+"{!}")
-	} else {
-		fmtc.Fprintf(os.Stderr, "{r}"+f+"{!}\n", a...)
-	}
-}
-
-// printError prints warning message to console
-func printWarn(f string, a ...interface{}) {
-	if len(a) == 0 {
-		fmtc.Fprintln(os.Stderr, "{y}"+f+"{!}")
-	} else {
-		fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
-	}
-}
-
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // checkAPIAvailability checks API availability
@@ -294,11 +299,11 @@ func printCompletion() int {
 
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Print(bash.Generate(info, "subdy"))
+		fmt.Print(bash.Generate(info, APP))
 	case "fish":
-		fmt.Print(fish.Generate(info, "subdy"))
+		fmt.Print(fish.Generate(info, APP))
 	case "zsh":
-		fmt.Print(zsh.Generate(info, optMap, "subdy"))
+		fmt.Print(zsh.Generate(info, optMap, APP))
 	default:
 		return 1
 	}
@@ -308,12 +313,7 @@ func printCompletion() int {
 
 // printMan prints man page
 func printMan() {
-	fmt.Println(
-		man.Generate(
-			genUsage(),
-			genAbout(""),
-		),
-	)
+	fmt.Println(man.Generate(genUsage(), genAbout("")))
 }
 
 // genUsage generates usage info
@@ -321,7 +321,7 @@ func genUsage() *usage.Info {
 	info := usage.NewInfo("", "domain")
 
 	info.AddOption(OPT_IP, "Resolve subdomains IP")
-	info.AddOption(OPT_DNS, "DoH provider {s-}({_}cloudflare{!_}|google|url){!}", "name-or-url")
+	info.AddOption(OPT_DNS, "DoH JSON provider {s-}({_}cloudflare{!_}|google|quad9|custom-url){!}", "name-or-url")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
@@ -351,6 +351,8 @@ func genAbout(gitRev string) *usage.About {
 		Owner:   "ESSENTIAL KAOS",
 		License: "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
 	}
+
+	about.DescSeparator = "{s}—{!}"
 
 	if gitRev != "" {
 		about.Build = "git:" + gitRev
