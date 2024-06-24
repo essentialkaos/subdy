@@ -1,24 +1,23 @@
-<p align="center"><a href="#readme"><img src="https://gh.kaos.st/subdy.svg"/></a></p>
+<p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/r/subdy"><img src="https://kaos.sh/r/subdy.svg" alt="GoReportCard" /></a>
   <a href="https://kaos.sh/l/subdy"><img src="https://kaos.sh/l/395df260d03eaa6c8a31.svg" alt="Code Climate Maintainability" /></a>
   <a href="https://kaos.sh/b/subdy"><img src="https://kaos.sh/b/ad36c313-9009-4abe-97d6-7c1f0de39794.svg" alt="Codebeat badge" /></a>
   <a href="https://kaos.sh/w/subdy/ci"><img src="https://kaos.sh/w/subdy/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/subdy/codeql"><img src="https://kaos.sh/w/subdy/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
-  <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
+  <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
 <p align="center"><a href="#screenshots">Screenshots</a> • <a href="#installation">Installation</a> • <a href="#usage">Usage</a> • <a href="#ci-status">CI Status</a> • <a href="#contributing">Contributing</a> • <a href="#license">License</a></p>
 
 <br/>
 
-`subdy` is simple CLI for [subdomain.center](https://www.subdomain.center) API.
+`subdy` is a simple CLI for [subdomain.center](https://www.subdomain.center) API.
 
 ### Screenshots
 
 <p align="center">
-  <img src="https://gh.kaos.st/subdy.png" alt="subdy preview">
+  <img src=".github/images/subdy.png" alt="subdy preview">
 </p>
 
 ### Installation
@@ -78,28 +77,7 @@ subdy --generate-man | sudo gzip > /usr/share/man/man1/subdy.1.gz
 
 ### Usage
 
-```
-Usage: subdy {options} domain
-
-Options
-
-  --ip, -I                 Resolve subdomains IP
-  --dns, -D name-or-url    DoH provider (cloudflare|google|url)
-  --no-color, -nc          Disable colors in output
-  --help, -h               Show this help message
-  --version, -v            Show version
-
-Examples
-
-  subdy go.dev
-  Find all subdomains of go.dev
-
-  subdy -I go.dev
-  Find all subdomains of go.dev and resolve their IPs
-
-  subdy -I -D google go.dev
-  Find all subdomains of go.dev and resolve their IPs using Google DNS
-```
+<img src=".github/images/usage.svg" />
 
 ### CI Status
 

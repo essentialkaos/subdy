@@ -10,4 +10,5 @@ package dns
 const (
 	CLOUDFLARE = "1.1.1.1/dns-query"
 	GOOGLE     = "dns.google/resolve"
+	QUAD9      = "9.9.9.9:5053/dns-query"
 )
