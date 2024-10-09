@@ -2,7 +2,6 @@
 
 <p align="center">
   <a href="https://kaos.sh/l/subdy"><img src="https://kaos.sh/l/395df260d03eaa6c8a31.svg" alt="Code Climate Maintainability" /></a>
-  <a href="https://kaos.sh/b/subdy"><img src="https://kaos.sh/b/ad36c313-9009-4abe-97d6-7c1f0de39794.svg" alt="Codebeat badge" /></a>
   <a href="https://kaos.sh/w/subdy/ci"><img src="https://kaos.sh/w/subdy/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/subdy/codeql"><img src="https://kaos.sh/w/subdy/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
