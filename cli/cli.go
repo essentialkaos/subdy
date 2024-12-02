@@ -239,9 +239,9 @@ func printSubdomainsInfo(subdomains []subdomainInfo) {
 
 	for _, domainInfo := range subdomains {
 		if domainInfo.ip != "" {
-			fmtc.Printf(" {s}•{!} %s {s-}(%s){!}\n", domainInfo.name, domainInfo.ip)
+			fmtc.Printfn(" {s}•{!} %s {s-}(%s){!}", domainInfo.name, domainInfo.ip)
 		} else {
-			fmtc.Printf(" {s}•{!} %s\n", domainInfo.name)
+			fmtc.Printfn(" {s}•{!} %s", domainInfo.name)
 		}
 	}
 
