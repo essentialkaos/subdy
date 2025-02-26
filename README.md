@@ -23,7 +23,7 @@
 
 #### From source
 
-To build the `subdy` from scratch, make sure you have a working Go 1.20+ workspace (_[instructions](https://go.dev/doc/install)_), then:
+To build the `subdy` from scratch, make sure you have a working Go 1.23+ workspace (_[instructions](https://go.dev/doc/install)_), then:
 
 ```bash
 go install github.com/essentialkaos/subdy@latest
