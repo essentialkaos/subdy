@@ -50,6 +50,7 @@ var ports = []int{
 	8443,  // https
 	9000,  // gunicorn
 	9042,  // cassandra
+	9200,  // elastic
 	9464,  // prometheus
 	13000, // grafana
 	27017, // mongo
