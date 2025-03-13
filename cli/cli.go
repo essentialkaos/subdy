@@ -10,11 +10,14 @@ package app
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
+	"time"
 
 	"github.com/essentialkaos/ek/v13/fmtc"
 	"github.com/essentialkaos/ek/v13/options"
 	"github.com/essentialkaos/ek/v13/req"
+	"github.com/essentialkaos/ek/v13/sortutil"
 	"github.com/essentialkaos/ek/v13/strutil"
 	"github.com/essentialkaos/ek/v13/support"
 	"github.com/essentialkaos/ek/v13/support/deps"
@@ -28,6 +31,7 @@ import (
 	"github.com/essentialkaos/ek/v13/usage/update"
 
 	"github.com/essentialkaos/subdy/dns"
+	"github.com/essentialkaos/subdy/probe"
 	"github.com/essentialkaos/subdy/subdomains"
 )
 
@@ -36,7 +40,7 @@ import (
 // Basic utility info
 const (
 	APP  = "subdy"
-	VER  = "0.2.0"
+	VER  = "0.3.0"
 	DESC = "CLI for subdomain.center API"
 )
 
@@ -46,6 +50,7 @@ const (
 const (
 	OPT_IP       = "I:ip"
 	OPT_DNS      = "D:dns"
+	OPT_PROBE    = "P:probe"
 	OPT_NO_COLOR = "nc:no-color"
 	OPT_HELP     = "h:help"
 	OPT_VER      = "v:version"
@@ -57,10 +62,11 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// subdomainInfo contains subdomain info
-type subdomainInfo struct {
-	name string
-	ip   string
+// subdomain contains subdomain info
+type subdomain struct {
+	name     string
+	ip       *dns.Answer
+	services []string
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -69,6 +75,7 @@ type subdomainInfo struct {
 var optMap = options.Map{
 	OPT_IP:       {Type: options.BOOL},
 	OPT_DNS:      {Type: options.STRING, Value: "cloudflare"},
+	OPT_PROBE:    {Type: options.BOOL},
 	OPT_NO_COLOR: {Type: options.BOOL},
 	OPT_HELP:     {Type: options.BOOL},
 	OPT_VER:      {Type: options.MIXED},
@@ -209,24 +216,45 @@ func process(args options.Arguments) error {
 }
 
 // processSubdomains enriches subdomains info
-func processSubdomains(subdomains []string) []subdomainInfo {
-	var result []subdomainInfo
+func processSubdomains(subdomains []string) []*subdomain {
+	var result []*subdomain
 
 	resolver := getDoHResolver()
 
-	for index, subdomain := range subdomains {
-		if options.GetB(OPT_IP) {
-			fmtc.If(!useRawOutput).TPrintf("{s-}[%d/%d] Resolving subdomain IP…{!}", index, len(subdomains))
+	sortutil.StringsNatural(subdomains)
+	subdomains = slices.CompactFunc(subdomains, func(s1, s2 string) bool {
+		return strings.ToLower(s1) == strings.ToLower(s2)
+	})
 
-			ip, err := resolver.Resolve(subdomain, useRawOutput)
+	for index, name := range subdomains {
+		name = strings.ToLower(name)
 
-			if err != nil && !useRawOutput {
-				ip = fmt.Sprintf("error: %v", err)
+		if options.GetB(OPT_IP) || options.GetB(OPT_PROBE) {
+			fmtc.If(!useRawOutput).TPrintf(
+				"{s-}[%d/%d] Resolving %s IP…{!}",
+				index, len(subdomains), name,
+			)
+
+			answer, err := resolver.Resolve(name)
+
+			if err != nil {
+				continue
 			}
 
-			result = append(result, subdomainInfo{name: subdomain, ip: ip})
+			result = append(result, &subdomain{name: name, ip: answer})
 		} else {
-			result = append(result, subdomainInfo{name: subdomain})
+			result = append(result, &subdomain{name: name})
+		}
+	}
+
+	if !useRawOutput && options.GetB(OPT_PROBE) {
+		for index, info := range result {
+			fmtc.TPrintf(
+				"{s-}[%d/%d] Probing %s…{!}",
+				index, len(result), info.name,
+			)
+
+			info.services = probe.Probe(info.ip.IP())
 		}
 	}
 
@@ -234,24 +262,33 @@ func processSubdomains(subdomains []string) []subdomainInfo {
 }
 
 // printSubdomainsInfo prints subdomains info
-func printSubdomainsInfo(subdomains []subdomainInfo) {
+func printSubdomainsInfo(subdomains []*subdomain) {
 	fmtc.NewLine()
 
-	for _, domainInfo := range subdomains {
-		if domainInfo.ip != "" {
-			fmtc.Printfn(" {s}•{!} %s {s-}(%s){!}", domainInfo.name, domainInfo.ip)
+	for _, info := range subdomains {
+		if !info.ip.IsEmpty() {
+			fmtc.Printf(
+				" {s}•{!} %s {s-}(%s){!}",
+				info.name, info.ip.ToString(false),
+			)
 		} else {
-			fmtc.Printfn(" {s}•{!} %s", domainInfo.name)
+			fmtc.Printf(" {s}•{!} %s", info.name)
 		}
+
+		if len(info.services) != 0 {
+			fmt.Print(" " + getColoredServicePorts(info.services))
+		}
+
+		fmtc.NewLine()
 	}
 
 	fmtc.NewLine()
 }
 
 // printRawSubdomainsInfo prints subdomains info for raw output
-func printRawSubdomainsInfo(subdomains []subdomainInfo) {
-	for _, domainInfo := range subdomains {
-		fmt.Println(domainInfo.name, domainInfo.ip)
+func printRawSubdomainsInfo(subdomains []*subdomain) {
+	for _, info := range subdomains {
+		fmt.Println(info.name, info.ip.ToString(true))
 	}
 }
 
@@ -266,16 +303,42 @@ func getDoHResolver() *dns.Resolver {
 	return &dns.Resolver{resolverURL}
 }
 
+// getColoredServicePorts formats list of services
+func getColoredServicePorts(services []string) string {
+	return strutil.JoinFunc(services, " ", func(s string) string {
+		colorTag := "{#152}"
+
+		switch s {
+		case "22", "23", "5800":
+			colorTag = "{#67}"
+		case "25", "110", "143", "220", "993", "995":
+			colorTag = "{#173}"
+		case "21", "115", "445", "636", "990", "3389":
+			colorTag = "{#140}"
+		case "80", "443", "3000", "8080", "8443":
+			colorTag = "{#151}"
+		case "53":
+			colorTag = "{#153}"
+		case "1434", "3306", "3690", "5432", "6379", "6432", "9042", "27017":
+			colorTag = "{#221}"
+		}
+
+		return fmtc.Sprintf(colorTag+"[%s]{!}", s)
+	})
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // checkAPIAvailability checks API availability
 func checkAPIAvailability() support.Check {
-	chk := support.Check{support.CHECK_ERROR, "API", ""}
+	chk := support.Check{support.CHECK_ERROR, "subdomain.center API", ""}
 
+	start := time.Now()
 	resp, err := req.Request{
 		URL:         subdomains.API_URL,
 		AutoDiscard: true,
 	}.Get()
+	dur := time.Since(start)
 
 	if err != nil {
 		chk.Message = "Can't send request"
@@ -288,7 +351,12 @@ func checkAPIAvailability() support.Check {
 	}
 
 	chk.Status = support.CHECK_OK
-	chk.Message = "API available"
+
+	if dur < 500*time.Millisecond {
+		chk.Message = "accessible and healthy"
+	} else {
+		chk.Message = "accessible"
+	}
 
 	return chk
 }

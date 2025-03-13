@@ -26,10 +26,8 @@ type response []string
 // Find fetches subdomains for given domain
 func Find(domain string) ([]string, error) {
 	resp, err := req.Request{
-		URL: API_URL,
-		Query: req.Query{
-			"domain": domain,
-		},
+		URL:         API_URL,
+		Query:       req.Query{"domain": domain},
 		Accept:      req.CONTENT_TYPE_JSON,
 		AutoDiscard: true,
 	}.Get()
