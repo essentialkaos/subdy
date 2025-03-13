@@ -189,7 +189,8 @@ func validateOptionsAndArgs(args options.Arguments) error {
 func process(args options.Arguments) error {
 	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains…{!}")
 
-	subdomains, err := subdomains.Find(args.Get(0).String())
+	domain := args.Get(0).ToLower().String()
+	subdomains, err := subdomains.Find(domain)
 
 	if err != nil {
 		fmtc.TPrintf("")
@@ -202,7 +203,7 @@ func process(args options.Arguments) error {
 		return nil
 	}
 
-	subdomainsInfo := processSubdomains(subdomains)
+	subdomainsInfo := processSubdomains(domain, subdomains)
 
 	fmtc.TPrintf("")
 
@@ -216,7 +217,7 @@ func process(args options.Arguments) error {
 }
 
 // processSubdomains enriches subdomains info
-func processSubdomains(subdomains []string) []*subdomain {
+func processSubdomains(domain string, subdomains []string) []*subdomain {
 	var result []*subdomain
 
 	resolver := getDoHResolver()
@@ -225,6 +226,7 @@ func processSubdomains(subdomains []string) []*subdomain {
 	subdomains = slices.CompactFunc(subdomains, func(s1, s2 string) bool {
 		return strings.ToLower(s1) == strings.ToLower(s2)
 	})
+	subdomains = append([]string{domain}, subdomains...)
 
 	for index, name := range subdomains {
 		name = strings.ToLower(name)
