@@ -390,6 +390,7 @@ func genUsage() *usage.Info {
 
 	info.AddOption(OPT_IP, "Resolve subdomains IP")
 	info.AddOption(OPT_DNS, "DoH JSON provider {s-}({_}cloudflare{!_}|google|quad9|custom-url){!}", "name-or-url")
+	info.AddOption(OPT_PROBE, "Probe subdomains for open ports")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
