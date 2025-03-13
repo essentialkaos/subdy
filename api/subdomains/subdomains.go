@@ -15,32 +15,28 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-const API_URL = "https://api.subdomain.center"
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-type response []string
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-// Find fetches subdomains for given domain
+// Find tries to find subdomains using subdomain.center API
 func Find(domain string) ([]string, error) {
 	resp, err := req.Request{
-		URL:         API_URL,
+		URL:         "https://api.subdomain.center",
 		Query:       req.Query{"domain": domain},
 		Accept:      req.CONTENT_TYPE_JSON,
 		AutoDiscard: true,
 	}.Get()
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't fetch subdomains data: %w", err)
+		return nil, fmt.Errorf("Can't send request to subdomain.center API: %w", err)
+	}
+
+	if resp.StatusCode > 299 {
+		return nil, fmt.Errorf("subdomain.center API returned non-ok status code %d", resp.StatusCode)
 	}
 
 	subdomains := make([]string, 0)
 	err = resp.JSON(&subdomains)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't decode response: %w", err)
+		return nil, fmt.Errorf("Can't decode API response: %w", err)
 	}
 
 	return subdomains, nil

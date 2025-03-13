@@ -48,8 +48,10 @@ var ports = []int{
 	6432,  // pgbouncer
 	8080,  // http
 	8443,  // https
+	9000,  // gunicorn
 	9042,  // cassandra
 	9464,  // prometheus
+	13000, // grafana
 	27017, // mongo
 }
 

@@ -30,9 +30,10 @@ import (
 	"github.com/essentialkaos/ek/v13/usage/man"
 	"github.com/essentialkaos/ek/v13/usage/update"
 
+	"github.com/essentialkaos/subdy/api/certspotter"
+	"github.com/essentialkaos/subdy/api/subdomains"
 	"github.com/essentialkaos/subdy/dns"
 	"github.com/essentialkaos/subdy/probe"
-	"github.com/essentialkaos/subdy/subdomains"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -187,25 +188,20 @@ func validateOptionsAndArgs(args options.Arguments) error {
 
 // process starts arguments processing
 func process(args options.Arguments) error {
-	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains…{!}")
 
 	domain := args.Get(0).ToLower().String()
-	subdomains, err := subdomains.Find(domain)
+	subdomains, err := searchSubdomains(domain)
 
 	if err != nil {
-		fmtc.TPrintf("")
 		return err
 	}
 
 	if len(subdomains) == 0 {
-		fmtc.TPrintf("")
 		terminal.Warn("There are no subdomains for this domain")
 		return nil
 	}
 
-	subdomainsInfo := processSubdomains(domain, subdomains)
-
-	fmtc.TPrintf("")
+	subdomainsInfo := processSubdomains(subdomains)
 
 	if !useRawOutput {
 		printSubdomainsInfo(subdomainsInfo)
@@ -216,9 +212,39 @@ func process(args options.Arguments) error {
 	return nil
 }
 
+// searchSubdomains searches subdomains using various sources
+func searchSubdomains(domain string) ([]string, error) {
+	var result []string
+
+	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using subdomain.center…{!}")
+	defer fmtc.If(!useRawOutput).TPrintf("")
+
+	subdomains, err := subdomains.Find(domain)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result = append(result, subdomains...)
+
+	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using CertSpotter…{!}")
+
+	subdomains, err = certspotter.Find(domain)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result = append(result, subdomains...)
+
+	return result, nil
+}
+
 // processSubdomains enriches subdomains info
-func processSubdomains(domain string, subdomains []string) []*subdomain {
+func processSubdomains(subdomains []string) []*subdomain {
 	var result []*subdomain
+
+	defer fmtc.If(!useRawOutput).TPrintf("")
 
 	resolver := getDoHResolver()
 
@@ -226,7 +252,6 @@ func processSubdomains(domain string, subdomains []string) []*subdomain {
 	subdomains = slices.CompactFunc(subdomains, func(s1, s2 string) bool {
 		return strings.ToLower(s1) == strings.ToLower(s2)
 	})
-	subdomains = append([]string{domain}, subdomains...)
 
 	for index, name := range subdomains {
 		name = strings.ToLower(name)
@@ -317,7 +342,7 @@ func getColoredServicePorts(services []string) string {
 			colorTag = "{#173}"
 		case "21", "115", "445", "636", "990", "3389":
 			colorTag = "{#140}"
-		case "80", "443", "3000", "8080", "8443":
+		case "80", "443", "3000", "8080", "8443", "9000":
 			colorTag = "{#151}"
 		case "53":
 			colorTag = "{#153}"
@@ -337,7 +362,7 @@ func checkAPIAvailability() support.Check {
 
 	start := time.Now()
 	resp, err := req.Request{
-		URL:         subdomains.API_URL,
+		URL:         "https://api.subdomain.center",
 		AutoDiscard: true,
 	}.Get()
 	dur := time.Since(start)
