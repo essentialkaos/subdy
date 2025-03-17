@@ -10,7 +10,7 @@
 
 <br/>
 
-`subdy` is a CLI for searching subdomains info using [subdomain.center](https://www.subdomain.center) and [CertSpotter](https://sslmate.com/ct_search_api/) APIs.
+`subdy` is a CLI for searching subdomains info using [subdomain.center](https://www.subdomain.center), [CertSpotter](https://sslmate.com/ct_search_api/), and [CIDRE](https://ctlogsearch.com) APIs.
 
 ### Screenshots
 
