@@ -57,7 +57,7 @@ func Find(domain, token string) ([]string, error) {
 	err = resp.JSON(&certs)
 
 	if err != nil {
-		return nil, fmt.Errorf("Can't decode API response: %w", err)
+		return nil, fmt.Errorf("Can't decode CertSpotter API response: %w", err)
 	}
 
 	var subdomains []string

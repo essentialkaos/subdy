@@ -31,6 +31,7 @@ import (
 	"github.com/essentialkaos/ek/v13/usage/update"
 
 	"github.com/essentialkaos/subdy/api/certspotter"
+	"github.com/essentialkaos/subdy/api/ctlogsearch"
 	"github.com/essentialkaos/subdy/api/subdomains"
 	"github.com/essentialkaos/subdy/dns"
 	"github.com/essentialkaos/subdy/probe"
@@ -229,9 +230,19 @@ func searchSubdomains(domain string) []string {
 
 	if err != nil {
 		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
+	} else {
+		result = append(result, subdomains...)
 	}
 
-	result = append(result, subdomains...)
+	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using CTLogSearch…{!}")
+
+	subdomains, err = ctlogsearch.Find(domain)
+
+	if err != nil {
+		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
+	} else {
+		result = append(result, subdomains...)
+	}
 
 	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using CertSpotter…{!}")
 
