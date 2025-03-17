@@ -27,8 +27,8 @@ type certs []*cert
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Find tries to find subdomains using CertSpotter API
-func Find(domain string) ([]string, error) {
-	resp, err := req.Request{
+func Find(domain, token string) ([]string, error) {
+	r := req.Request{
 		URL: "https://api.certspotter.com/v1/issuances",
 		Query: req.Query{
 			"domain":             domain,
@@ -37,7 +37,13 @@ func Find(domain string) ([]string, error) {
 		},
 		Accept:      req.CONTENT_TYPE_JSON,
 		AutoDiscard: true,
-	}.Get()
+	}
+
+	if token != "" {
+		r.Auth = req.AuthBearer{token}
+	}
+
+	resp, err := r.Get()
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't send request to CertSpotter API: %w", err)

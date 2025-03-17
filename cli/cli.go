@@ -63,6 +63,17 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+const (
+	// ENV_CERT_SPOTTER is environment variable name with CertSpotter API token
+	ENV_CERT_SPOTTER = "CT_TOKEN"
+
+	// ENV_SUBDOMAINS is environment variable name with Subdomain Center API
+	// authentication code
+	ENV_SUBDOMAINS = "SD_TOKEN"
+)
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // subdomain contains subdomain info
 type subdomain struct {
 	name     string
@@ -190,11 +201,7 @@ func validateOptionsAndArgs(args options.Arguments) error {
 func process(args options.Arguments) error {
 
 	domain := args.Get(0).ToLower().String()
-	subdomains, err := searchSubdomains(domain)
-
-	if err != nil {
-		return err
-	}
+	subdomains := searchSubdomains(domain)
 
 	if len(subdomains) == 0 {
 		terminal.Warn("There are no subdomains for this domain")
@@ -213,31 +220,32 @@ func process(args options.Arguments) error {
 }
 
 // searchSubdomains searches subdomains using various sources
-func searchSubdomains(domain string) ([]string, error) {
+func searchSubdomains(domain string) []string {
 	var result []string
 
 	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using subdomain.center…{!}")
-	defer fmtc.If(!useRawOutput).TPrintf("")
 
-	subdomains, err := subdomains.Find(domain)
+	subdomains, err := subdomains.Find(domain, os.Getenv(ENV_SUBDOMAINS))
 
 	if err != nil {
-		return nil, err
+		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
 	}
 
 	result = append(result, subdomains...)
 
 	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using CertSpotter…{!}")
 
-	subdomains, err = certspotter.Find(domain)
+	subdomains, err = certspotter.Find(domain, os.Getenv(ENV_CERT_SPOTTER))
 
 	if err != nil {
-		return nil, err
+		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
+	} else {
+		fmtc.If(!useRawOutput).TPrintf("")
 	}
 
 	result = append(result, subdomains...)
 
-	return result, nil
+	return result
 }
 
 // processSubdomains enriches subdomains info

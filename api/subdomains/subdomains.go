@@ -16,13 +16,20 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Find tries to find subdomains using subdomain.center API
-func Find(domain string) ([]string, error) {
-	resp, err := req.Request{
+func Find(domain, authCode string) ([]string, error) {
+	r := req.Request{
 		URL:         "https://api.subdomain.center",
 		Query:       req.Query{"domain": domain},
 		Accept:      req.CONTENT_TYPE_JSON,
 		AutoDiscard: true,
-	}.Get()
+	}
+
+	if authCode != "" {
+		r.URL = "https://api.subdomain.center/beta/"
+		r.Query.SetIf(authCode != "", "auth", authCode)
+	}
+
+	resp, err := r.Get()
 
 	if err != nil {
 		return nil, fmt.Errorf("Can't send request to subdomain.center API: %w", err)
