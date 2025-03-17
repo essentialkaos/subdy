@@ -1,8 +1,6 @@
 <p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/l/subdy"><img src="https://kaos.sh/l/395df260d03eaa6c8a31.svg" alt="Code Climate Maintainability" /></a>
-  <a href="https://kaos.sh/b/subdy"><img src="https://kaos.sh/b/ad36c313-9009-4abe-97d6-7c1f0de39794.svg" alt="Codebeat badge" /></a>
   <a href="https://kaos.sh/w/subdy/ci"><img src="https://kaos.sh/w/subdy/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/subdy/codeql"><img src="https://kaos.sh/w/subdy/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
@@ -12,7 +10,7 @@
 
 <br/>
 
-`subdy` is a simple CLI for [subdomain.center](https://www.subdomain.center) API.
+`subdy` is a CLI for searching subdomains info using [subdomain.center](https://www.subdomain.center), [CertSpotter](https://sslmate.com/ct_search_api/), and [CIDRE](https://ctlogsearch.com) APIs.
 
 ### Screenshots
 
@@ -24,7 +22,7 @@
 
 #### From source
 
-To build the `subdy` from scratch, make sure you have a working Go 1.20+ workspace (_[instructions](https://go.dev/doc/install)_), then:
+To build the `subdy` from scratch, make sure you have a working Go 1.23+ workspace (_[instructions](https://go.dev/doc/install)_), then:
 
 ```bash
 go install github.com/essentialkaos/subdy@latest
@@ -94,4 +92,4 @@ Before contributing to this project please read our [Contributing Guidelines](ht
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-<p align="center"><a href="https://essentialkaos.com"><img src="https://gh.kaos.st/ekgh.svg"/></a></p>
+<p align="center"><a href="https://kaos.dev"><img src="https://raw.githubusercontent.com/essentialkaos/.github/refs/heads/master/images/ekgh.svg"/></a></p>

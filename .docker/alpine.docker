@@ -1,10 +1,10 @@
 ## REGISTRY CONFIGURATION ######################################################
 
-ARG REGISTRY="docker.io"
+ARG REGISTRY="ghcr.io"
 
 ## BUILDER #####################################################################
 
-FROM ${REGISTRY}/essentialkaos/golang:alpine3.18 as builder
+FROM ${REGISTRY}/essentialkaos/golang:alpine3.21 AS builder
 
 WORKDIR /go/src/github.com/essentialkaos/subdy
 
@@ -14,7 +14,7 @@ RUN make deps && make all
 
 ## FINAL IMAGE #################################################################
 
-FROM ${REGISTRY}/essentialkaos/alpine:3.18
+FROM ${REGISTRY}/essentialkaos/alpine:3.21
 
 LABEL org.opencontainers.image.title="subdy" \
       org.opencontainers.image.description="CLI for subdomain.center API" \
