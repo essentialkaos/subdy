@@ -234,7 +234,7 @@ func searchSubdomains(domain string) []string {
 		result = append(result, subdomains...)
 	}
 
-	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using CTLogSearch…{!}")
+	fmtc.If(!useRawOutput).TPrintf("{s-}Searching subdomains using CTLogSearch (CIDRE)…{!}")
 
 	subdomains, err = ctlogsearch.Find(domain)
 
