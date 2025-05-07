@@ -42,8 +42,8 @@ import (
 // Basic utility info
 const (
 	APP  = "subdy"
-	VER  = "0.3.1"
-	DESC = "CLI for subdomain.center API"
+	VER  = "0.4.0"
+	DESC = "Tool for searching subdomains"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -227,9 +227,7 @@ func searchSubdomains(domain string) []string {
 
 	subdomains, err := subdomains.Find(domain, os.Getenv(ENV_SUBDOMAINS))
 
-	if err != nil {
-		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
-	} else {
+	if err == nil {
 		result = append(result, subdomains...)
 	}
 
@@ -237,9 +235,7 @@ func searchSubdomains(domain string) []string {
 
 	subdomains, err = ctlogsearch.Find(domain)
 
-	if err != nil {
-		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
-	} else {
+	if err == nil {
 		result = append(result, subdomains...)
 	}
 
@@ -247,9 +243,7 @@ func searchSubdomains(domain string) []string {
 
 	subdomains, err = certspotter.Find(domain, os.Getenv(ENV_CERT_SPOTTER))
 
-	if err != nil {
-		fmtc.If(!useRawOutput).TPrintf("{r}▲ %v{!}\n", err)
-	} else {
+	if err == nil {
 		fmtc.If(!useRawOutput).TPrintf("")
 	}
 
