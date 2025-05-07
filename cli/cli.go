@@ -271,9 +271,7 @@ func processSubdomains(subdomains []string) []*subdomain {
 	resolver := getDoHResolver()
 
 	sortutil.StringsNatural(subdomains)
-	subdomains = slices.CompactFunc(subdomains, func(s1, s2 string) bool {
-		return strings.EqualFold(s1, s2)
-	})
+	subdomains = slices.CompactFunc(subdomains, strings.EqualFold)
 
 	for index, name := range subdomains {
 		name = strings.ToLower(name)
