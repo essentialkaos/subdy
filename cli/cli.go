@@ -42,7 +42,7 @@ import (
 // Basic utility info
 const (
 	APP  = "subdy"
-	VER  = "0.3.0"
+	VER  = "0.3.1"
 	DESC = "CLI for subdomain.center API"
 )
 
@@ -200,7 +200,6 @@ func validateOptionsAndArgs(args options.Arguments) error {
 
 // process starts arguments processing
 func process(args options.Arguments) error {
-
 	domain := args.Get(0).ToLower().String()
 	subdomains := searchSubdomains(domain)
 
@@ -269,7 +268,7 @@ func processSubdomains(subdomains []string) []*subdomain {
 
 	sortutil.StringsNatural(subdomains)
 	subdomains = slices.CompactFunc(subdomains, func(s1, s2 string) bool {
-		return strings.ToLower(s1) == strings.ToLower(s2)
+		return strings.EqualFold(s1, s2)
 	})
 
 	for index, name := range subdomains {
