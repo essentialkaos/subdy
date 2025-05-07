@@ -109,6 +109,9 @@ var dohProviders = map[string]string{
 // useRawOutput is raw output flag (for cli command)
 var useRawOutput = false
 
+// app color tags
+var colorTagApp, colorTagVer string
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Run is main utility function
@@ -167,6 +170,13 @@ func Run(gitRev string, gomod []byte) {
 func preConfigureUI() {
 	if !tty.IsTTY() {
 		fmtc.DisableColors = true
+	}
+
+	switch {
+	case fmtc.Is256ColorsSupported():
+		colorTagApp, colorTagVer = "{*}{#116}", "{#116}"
+	default:
+		colorTagApp, colorTagVer = "{*}{c}", "{c}"
 	}
 }
 
@@ -427,12 +437,17 @@ func printMan() {
 func genUsage() *usage.Info {
 	info := usage.NewInfo("", "domain")
 
+	info.AppNameColorTag = colorTagApp
+
 	info.AddOption(OPT_IP, "Resolve subdomains IP")
 	info.AddOption(OPT_DNS, "DoH JSON provider {s-}({_}cloudflare{!_}|google|quad9|custom-url){!}", "name-or-url")
 	info.AddOption(OPT_PROBE, "Probe subdomains for open ports")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
+
+	info.AddEnv(ENV_SUBDOMAINS, "Token for subdomain.center API")
+	info.AddEnv(ENV_CERT_SPOTTER, "Token for CertSpotter API")
 
 	info.AddExample(
 		"go.dev", "Find all subdomains of go.dev",
@@ -457,6 +472,11 @@ func genAbout(gitRev string) *usage.About {
 		Desc:    DESC,
 		Year:    2009,
 		Owner:   "ESSENTIAL KAOS",
+
+		AppNameColorTag: colorTagApp,
+		VersionColorTag: colorTagVer,
+		DescSeparator:   "{s}—{!}",
+
 		License: "Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>",
 	}
 
