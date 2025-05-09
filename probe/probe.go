@@ -86,10 +86,8 @@ func Probe(ips []string) []string {
 				foundPorts[port] = true
 				probeCache.Set(addr, true)
 
-			} else {
-				if probeCache.Get(addr).(bool) {
-					foundPorts[port] = true
-				}
+			} else if probeCache.Get(addr).(bool) {
+				foundPorts[port] = true
 			}
 		}
 	}
